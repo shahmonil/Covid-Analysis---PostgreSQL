@@ -1,3 +1,7 @@
+--- Covid analysis from when it started (Early 2020) till the end of December 2021. 
+--- Imported data from https://ourworldindata.org/covid-deaths
+
+
 
 create table covid_analysis.covid_death(
 iso_code char(50) ,
@@ -263,22 +267,21 @@ group by 1,2;
 
 --how many people have been vaccinated globally
 ----------------------------------------trying sub queries
-select *
-from covid_analysis.covid_death as d
-join covid_analysis.covid_vaccinations  as v
-on d.location = v.location and d.date = v.date
-where sum(people_vaccinated)/sum(population)*100 in (
-select max(d.population) as population, max(v.people_vaccinated) as people_vaccinated, 
+select sum(t.people_vaccinated)/sum(t.population)*100 as total_world_vaccinated_percentage
+from  (
+select d.location, max(d.population) as population, max(v.people_vaccinated) as people_vaccinated, 
 	max(v.people_vaccinated)/max(d.population)*100
 from covid_analysis.covid_death as d
 join covid_analysis.covid_vaccinations  as v
 on d.location = v.location and d.date = v.date
 	where d.continent is not null
+group by d.location
 --where d.location like '%India%' or d.location like '%tates%'
-);
--------------------------------not working
+) as t;
+-- subqueries in 'from' statement
 
 
+--creating a view to help with tableau visualizaions
 drop view if exists covid_analysis.PopulationandPeopleVaccinated; 
 create view covid_analysis.PopulationandPeopleVaccinated as 
 (
